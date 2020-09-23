@@ -1,3 +1,6 @@
+% NOTE! This script requires that you install the MPT3 toolbox for the Polyhedron
+% object.
+
 box = makebox(3,1);
 L = 1.5;
 
