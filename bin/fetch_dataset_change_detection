@@ -1,0 +1,26 @@
+#!/bin/bash
+
+DATASETURL=http://jacarini.dinf.usherbrooke.ca/static/pedestrian%20detection//pedestrian%20detection%20dataset.zip
+
+if [ ! -d "data" ] 
+then
+    # Make the data folder
+    mkdir data
+
+    # Fetch the zip archive and put it in a temp file 
+    wget "$DATASETURL" -O pedestrians.zip
+    
+    # Unzip it to the data folder
+    unzip -q pedestrians.zip -d data
+
+    # Zip file contains a root folder, so we just remove that
+    mv data/pedestrian\ detection\ dataset/* data/
+    rmdir data/pedestrian\ detection\ dataset/
+
+    # Delete the temp file
+    rm pedestrians.zip
+
+else
+    echo "Data folder already exists. If you want to re-download data, delete the data folder."
+fi
+
