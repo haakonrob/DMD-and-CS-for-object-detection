@@ -89,9 +89,9 @@ class SDMD:
         ytilde = (self.Qy.T @ y)
 
         # update A, Gx, Gy
-        self.Gx = self.Gx + xtilde @ xtilde.T;
-        self.Gy = self.Gy + ytilde @ ytilde.T;
-        self.A = self.A + ytilde @ xtilde.T;
+        self.Gx = self.Gx + xtilde @ xtilde.T
+        self.Gy = self.Gy + ytilde @ ytilde.T
+        self.A = self.A + ytilde @ xtilde.T
         
     def compute_modes(self):
 #         print(self.Qx, self.Qy, self.A, self.Gx)
