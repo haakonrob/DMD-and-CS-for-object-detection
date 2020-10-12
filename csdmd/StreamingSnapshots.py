@@ -2,7 +2,7 @@ import numpy as np
 
 
 class SlidingDMD:
-    def __init__(self, N=60, max_rank = 10, dt=1):
+    def __init__(self, N=60, max_rank = None, dt=1):
         self.N = N
         self.X, self.Y = None, None
         self.XX = None
@@ -35,7 +35,7 @@ class SlidingDMD:
         V = V.conj().T  # This was killing me, why does numpy transpose this??
 
         # Truncate to r dimensions
-        r = self.max_rank
+        r = self.max_rank if self.max_rank is not None else U.shape[1]
         self.U_, self.S_, self.V_ = U[:,:r], S[:r], V[:,:r]
 
         # Calculate the reduced dim A and the eigvals / eigvecs
@@ -66,7 +66,7 @@ class SlidingDMD:
 
 
 class StreamingSnapshots:
-    def __init__(self, N=60, max_rank = 10, dt=1):
+    def __init__(self, N=60, max_rank = None, dt=1):
         self.N = N
         self._X = None
         self.XX = None
@@ -104,13 +104,14 @@ class StreamingSnapshots:
         # Perform SVD on the data and 
         # U,S,V = np.linalg.svd(self.X, full_matrices=False)
         # V = V.conj().T  # This was killing me, why does numpy transpose this??
-        V, L = np.linalg.eig(self.XX)
+        L, V = np.linalg.eig(self.XX)
         S = np.sqrt(abs(L)) 
+        # self.__dict__.update(locals())
         U = (self.X @ V) * np.reciprocal(S)
         
         
         # Truncate to r dimensions
-        r = self.max_rank
+        r = self.max_rank if self.max_rank is not None else U.shape[1]
         self.U_, self.S_, self.V_ = U[:,:r], S[:r], V[:,:r]
 
         # Calculate the reduced dim A and the eigvals / eigvecs
