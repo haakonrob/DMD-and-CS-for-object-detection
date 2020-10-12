@@ -110,10 +110,14 @@ class OnlineDMD:
         self.P = (self.P + self.P.T)/2
         # time step + 1
         self.timestep += 1
+        return True
 
     def compute_modes(self):
         """Compute and return DMD eigenvalues and DMD modes at current time step
-        Usage: evals, modes = odmd.computemodes()
+        Usage: evals, modes = odmd.compute_modes()
         """
         evals, modes = np.linalg.eig(self.A)
-        return evals, modes
+        return modes, evals
+
+    def reconstruct(self,t):
+        

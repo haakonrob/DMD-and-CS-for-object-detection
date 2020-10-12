@@ -49,7 +49,7 @@ class SlidingDMD:
         self.phi = ((self.Y @ self.V_) * np.reciprocal(self.S_))  @ self.W
         # self.phi = self.U_ @ self.W
 
-        return self.phi
+        return self.phi, None
 
     def reconstruct(self, t, nmodes=None):
         if nmodes is None or nmodes > self.phi.shape[1]:
@@ -125,7 +125,7 @@ class StreamingSnapshots:
         self.phi = ((self.Y @ self.V_) * np.reciprocal(self.S_))  @ self.W
         # self.phi = self.U_ @ self.W
 
-        return self.phi
+        return self.phi, None
 
     def reconstruct(self, t, nmodes=None):
         if nmodes is None or nmodes > self.phi.shape[1]:
