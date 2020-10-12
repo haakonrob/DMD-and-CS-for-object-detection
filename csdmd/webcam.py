@@ -47,11 +47,10 @@ def resetAlg(i):
         return None
 
 def run():
-    downsample = 10
-
+    downsample = 4
+    T = 0  # Reconstruction time
 
     cap = cv.VideoCapture(0)
-    cap.set(cv.CV_CAP_PROP_FPS, 60)
 
     if not cap.isOpened():
         print("Cannot open camera")
@@ -101,6 +100,8 @@ def run():
             elif key == ord('='):
                 downsample = max(1,downsample-1)
                 dmd = resetAlg(i)
+            elif key == ord('t'):
+                T = 1/curr_fps if T == 0 else 0
             elif key > -1: 
                 print(key)
         except Exception as e:
@@ -133,7 +134,7 @@ def run():
             if ready:
                 modes, _ = dmd.compute_modes()
                 if modes is not None:
-                    bg = dmd.reconstruct(0).real.clip(0,1).flatten()
+                    bg = dmd.reconstruct(t=T).real.clip(0,1).flatten()
                     objects = (y - bg).real.clip(0,1)
 
                     bg = bg.reshape(dshape()).T
@@ -157,7 +158,7 @@ def run():
             # Put info on the page
             im = cv.putText(
                 im, 
-                "FPS: {:.1f}, rank: {}, #snapshots: {}, Downsample: {}".format(fps, params["max_rank"], params["N"], downsample), 
+                "FPS: {:.1f}, rank: {}, #snapshots: {}, Downsample: {}, Predict: {}".format(fps, params["max_rank"], params["N"], downsample, "now" if T==0 else "future"), 
                 org=(0,20), 
                 fontFace=cv.FONT_HERSHEY_SIMPLEX,  
                 fontScale=0.5, 
