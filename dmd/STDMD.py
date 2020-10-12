@@ -27,7 +27,7 @@ class STDMD:
         if self.Qz is None or self.Gz is None:
             self.Qz = z/normz
             self.Gz = np.matrix(normz**2)
-            return False
+            return
         
         # Gram-Schmidt reorthonormalisation
         ztilde = np.zeros((self.Qz.shape[1],1))
@@ -53,11 +53,9 @@ class STDMD:
                 qz = eigvec[:,idxs[:self.max_rank]]
                 self.Qz = self.Qz @ qz
                 self.Gz = np.diag(eigval[idxs[:self.max_rank]])
-
-        return True
             
     def compute_modes(self):
-        n = self.Qz.shape[0] // 2
+        n = self.Qz.shape[0] // 2;
         Qx, Rx = np.linalg.qr(self.Qz[:n,:])
         if self.max_rank:
             Qx = Qx[:,:self.max_rank]

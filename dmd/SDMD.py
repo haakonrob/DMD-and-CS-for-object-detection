@@ -1,11 +1,11 @@
 import os
 import sys
-import imageio
+# import imageio
 import numpy as np
-import skimage
-from skimage import io
-from skimage import transform
-import matplotlib.pyplot as plt
+# import skimage
+# from skimage import io
+# from skimage import transform
+# import matplotlib.pyplot as plt
 
 class SDMD:
     def __init__(self, max_rank=None, ngram=5, epsilon=np.finfo(float).eps):
@@ -24,7 +24,7 @@ class SDMD:
             
         # The data stream might contain a blank input
         if normx < self.precision or normy < self.precision:
-            return False
+            return 
         
         # Initialise data as columns matrices
         x = np.matrix(x)
@@ -39,7 +39,7 @@ class SDMD:
             self.Gx = np.matrix(normx**2)
             self.Gy = np.matrix(normy**2)
             self.A = np.matrix(normx * normy)
-            return False
+            return
         
         # Gram-Schmidt reorthonormalization
         xtilde = np.zeros((self.Qx.shape[1],1))
@@ -49,20 +49,20 @@ class SDMD:
         for _ in range(self.ngram):
             dx = self.Qx.T @ ex
             dy = self.Qy.T @ ey
-            xtilde = xtilde + dx
-            ytilde = ytilde + dy
-            ex = ex - self.Qx @ dx
-            ey = ey - self.Qy @ dy
+            xtilde += dx
+            ytilde += dy
+            ex -= self.Qx @ dx
+            ey -= self.Qy @ dy
             
         # If the residuals are not described by the current bases, we need to update the bases 
         # to accomodate the new data. We then also need to zero pad the G and A matrices 
         if np.linalg.norm(ex) / normx > self.precision:
-            self.Qx = np.concatenate((self.Qx, ex), axis=1)
+            self.Qx = np.concatenate((self.Qx, ex / np.linalg.norm(ex)), axis=1)
             self.Gx = np.pad(self.Gx, ((0,1),(0,1)))
             self.A = np.pad(self.A, ((0,0),(0,1)))
             
         if np.linalg.norm(ey) / normy > self.precision:
-            self.Qy = np.concatenate((self.Qy, ey), axis=1)
+            self.Qy = np.concatenate((self.Qy, ey / np.linalg.norm(ey)), axis=1)
             self.Gy = np.pad(self.Gy, ((0,1),(0,1)))
             self.A = np.pad(self.A, ((0,1),(0,0)))
             
@@ -74,15 +74,21 @@ class SDMD:
                 qx = eigvec[:,idxs[:self.max_rank]]
                 self.Qx = self.Qx @ qx
                 self.A  = self.A @ qx
-                self.Gx = np.diag(eigval[idxs[:self.max_rank]]);
+                self.Gx = np.diag(eigval[idxs[:self.max_rank]])
             if self.Qy.shape[1] > self.max_rank:
                 eigval, eigvec = np.linalg.eig(self.Gy)
                 idxs = np.argsort(-eigval)
                 qy = eigvec[:,idxs[:self.max_rank]]
-                self.Qy = (self.Qy @ qy);
-                self.A  = (qy.T @ self.A);
-                self.Gy = np.diag(eigval[idxs[:self.max_rank]]);
-        
+                self.Qy = (self.Qy @ qy)
+                self.A  = (qy.T @ self.A)
+                self.Gy = np.diag(eigval[idxs[:self.max_rank]])
+
+            # for mat in (self.A,self.Qx,self.Qy,self.Gx, self.Gy):
+            #     mat[np.isnan(mat)] = 0
+            #     mat[np.isinf(mat)] = 0
+            
+
+
         
         # Update matrices using the outer products of the data pair
         xtilde = (self.Qx.T @ x)
@@ -92,15 +98,17 @@ class SDMD:
         self.Gx = self.Gx + xtilde @ xtilde.T
         self.Gy = self.Gy + ytilde @ ytilde.T
         self.A = self.A + ytilde @ xtilde.T
-
-        return True
         
     def compute_modes(self):
 #         print(self.Qx, self.Qy, self.A, self.Gx)
         if any(x is None for x in (self.Qx, self.Qy, self.A, self.Gx)):
             return None, None
-        Ktilde = self.Qx.T @ self.Qy @ self.A @ np.linalg.pinv(self.Gx) # @ self.A @ np.array(np.linalg.pinv(self.Gx))
-#         print(Ktilde.shape)
+        try:
+            # Ktilde = self.Qx.T @ self.Qy @ self.A @ np.linalg.pinv(self.Gx) # @ self.A @ np.array(np.linalg.pinv(self.Gx))
+            Ktilde = np.linalg.solve(self.Gx.T, self.A.T @ self.Qy.T @ self.Qx).T
+        except np.linalg.LinAlgError as e:
+            print(e)
+            return None, None
         eigvals, eigvecs  = np.linalg.eig(Ktilde)
         eigvals = np.matrix(np.diag(eigvals)).T
         modes = self.Qx @ np.vstack(eigvecs)
