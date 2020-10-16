@@ -27,25 +27,32 @@ class cvViewer:
 
         # Concatenate the results for a side by side comparison
         im = np.concatenate(frames, axis=1)   
+ 
+        # Put given string into the image
+        im = self.putText(im, infostring)
 
-        
-        # Put any desired string onto the page
-        im = cv.putText(
-            im, 
-            infostring, 
-            org=(0,20), 
-            fontFace=cv.FONT_HERSHEY_SIMPLEX,  
-            fontScale=0.5, 
-            color=(0,0,0), 
-            thickness=2)
-
-        im = cv.putText(
-            im, 
-            infostring, 
-            org=(0,20), 
-            fontFace=cv.FONT_HERSHEY_SIMPLEX,  
-            fontScale=0.45, 
-            color=(255,255,255), 
-            thickness=2)
-
+        # Draw the frame
         cv.imshow('frame', im)
+
+    def putText(self,im,text,org=(0,20),fontFace=cv.FONT_HERSHEY_PLAIN,fontScale=1,thickness=1):
+        # We draw the text twice with differenct thicknesses to get
+        # white text with a black border
+        im = cv.putText(
+            im, 
+            text, 
+            org=org, 
+            fontFace=fontFace,  
+            fontScale=fontScale, 
+            color=(0,0,0), 
+            thickness=thickness+3
+        )
+        im = cv.putText(
+            im, 
+            text, 
+            org=org, 
+            fontFace=fontFace,  
+            fontScale=fontScale, 
+            color=(255,255,255), 
+            thickness=thickness
+        )
+        return im
