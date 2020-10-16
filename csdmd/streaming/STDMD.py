@@ -2,7 +2,13 @@ import numpy as np
 
 
 class STDMD:
+    """
+    Implementation of the Streaming Total DMD (STDMD) algorithm from 
+    "De-biasing the Dynamic Mode Decomposition for Applied Koopman Spectral Analysis" 
+    (Hemati et al 2016)
+    """
     def __init__(self, max_rank=None, ngram=5, epsilon=np.finfo(float).eps):
+        self.x = None
         self.Qx = None
         self.Qy = None
         self.Gx = None
@@ -15,7 +21,12 @@ class STDMD:
         self.ngram = ngram         # Number of times to reapply Gram-Schmidt
         self.precision = epsilon
     
-    def stream(self, x, y):
+    def stream(self, y):
+        x = self.x
+        if x is None:
+            self.x = y
+            return False
+        
         n = x.ravel().shape[0]
         x = np.asmatrix(x).reshape((n,1))
         y = np.asmatrix(y).reshape((n,1))
@@ -66,8 +77,8 @@ class STDMD:
         Gx = Rx @ self.Gz @ Rx.T
         A = Qx.T @ self.Qz[n:, :] @ self.Gz @ self.Qz[:n,:].T @ Qx  # TODO: check that these are all good, I found a type in the sample code
         
-        Ktilde = A @ np.linalg.pinv(Gx);
-        eigvals, eigvecs = np.linalg.eig(Ktilde);
-        modes = Qx @ eigvecs;
+        Ktilde = A @ np.linalg.pinv(Gx)
+        eigvals, eigvecs = np.linalg.eig(Ktilde)
+        modes = Qx @ eigvecs
         idxs = np.argsort(-eigvals)
         return modes[:,idxs], eigvals[idxs]

@@ -2,13 +2,18 @@ import numpy as np
 
 
 class SDMD:
+    """
+    Implementation of the Streaming DMD algorithm from 
+    "Dynamic Mode Decomposition for large and streaming datasets" (Hemati et al 2014)
+    """
     def __init__(self, max_rank=None, ngram=5, epsilon=1.e-10):
+        self.x = None
         self.max_rank = max_rank
         self.count = 0
         self.ngram = ngram      # number of times to reapply Gram-Schmidt
         self.epsilon = epsilon  # tolerance for expanding the bases
 
-    def stream(self, x, y):
+    def stream(self, y):
         """Update the DMD computation with a pair of snapshots
         Add a pair of snapshots (x,y) to the data ensemble.  Here, if the
         (discrete-time) dynamics are given by z(n+1) = f(z(n)), then (x,y)
@@ -16,7 +21,14 @@ class SDMD:
         z(n) and z(n+1)
         """
 
+
         self.count += 1
+
+        x = self.x
+        if x is None:
+            self.x = y
+            return False
+
         normx = np.linalg.norm(x)
         normy = np.linalg.norm(y)
         n = len(x)
@@ -44,7 +56,7 @@ class SDMD:
         ytilde = np.matrix(np.zeros((ry, 1)))
         ex = np.matrix(x).reshape((n, 1))
         ey = np.matrix(y).reshape((n, 1))
-        for i in range(self.ngram):
+        for _ in range(self.ngram):
             dx = self.Qx.T.dot(ex)
             dy = self.Qy.T.dot(ey)
             xtilde += dx
