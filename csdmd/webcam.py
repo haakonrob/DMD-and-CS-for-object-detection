@@ -1,7 +1,10 @@
 import cv2 as cv
+import numpy as np
 from time import sleep, time
 from math import floor
 from traceback import print_tb
+
+from csdmd.inputParser import cvInputParser
 
 from csdmd.fps import FPS
 from csdmd.utils import isDigit
@@ -12,51 +15,10 @@ from csdmd.streaming.STDMD import STDMD
 from csdmd.streaming.StreamingSnapshots import StreamingSnapshots, SlidingDMD
 # from .OnlineDMD import OnlineDMD
 
-import numpy as np
-import cv2 as cv
 
 
-class cvInputParser:
-    def handle_inputs(self, bgmodel):
-        new_model = None
-        params = None
-        will_quit = False
 
-        try:
-            key = cv.waitKey(1)
 
-            if isDigit(key):
-                i = int(chr(key))
-                new_model = i
-            elif key == ord('q'):
-                will_quit = True 
-            elif key == ord('w'):
-                params = bgmodel.params
-                params["max_rank"] += 1
-            elif key == ord('a'):
-                params = bgmodel.params
-                params["N"] -= 5
-            elif key == ord('s'):
-                params = bgmodel.params
-                params["max_rank"] -= 1
-            elif key == ord('d'):
-                params = bgmodel.params
-                params["N"] += 5
-            elif key == ord('-'):
-                params = bgmodel.params
-                params['downsample'] += 1
-            elif key == ord('='):
-                params = bgmodel.params
-                params['downsample'] = max(1,params['downsample']-1)
-            elif key == ord('t'):
-                params = bgmodel.params
-                params['T'] = 1/30 if params['T'] == 0 else 0
-            elif key > -1: 
-                print(key)
-        except Exception as e:
-            print(e)
-
-        return new_model, params, will_quit
 
 
 class BackgroundModel:
@@ -192,7 +154,7 @@ def run(src=0):
 
         while True:
             # Handle user inputs for changes to the model or model parameters
-            new_model, new_params, will_quit = ip.handle_inputs(model)
+            new_model, new_params, will_quit = ip.handle_inputs(model.params)
             if will_quit:
                 break
             elif new_model is not None or new_params is not None:
