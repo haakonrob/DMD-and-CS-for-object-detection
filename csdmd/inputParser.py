@@ -1,7 +1,16 @@
 from cv2 import waitKey
-from .utils import isDigit
 
 class cvInputParser:
+    """
+        Module that takes in key presses and outputs the desired 
+        change in parameters and models
+    """
+
+    @staticmethod
+    def isDigit(key):
+        return 48 <= key <= 57 
+
+
     def handle_inputs(self, current_params):
         new_model = None
         params = None
@@ -10,7 +19,7 @@ class cvInputParser:
         try:
             key = waitKey(1)
 
-            if isDigit(key):
+            if self.isDigit(key):
                 i = int(chr(key))
                 new_model = i
             elif key == ord('q'):
