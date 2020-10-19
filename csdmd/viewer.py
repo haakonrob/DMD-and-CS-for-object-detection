@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import matplotlib.pyplot as plt  # For some reason, it seems that cv.imshow won't work without this on some linux systems...
 
 
 class cvViewer:
