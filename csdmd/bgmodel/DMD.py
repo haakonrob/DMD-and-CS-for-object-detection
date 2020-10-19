@@ -1,8 +1,13 @@
 import numpy as np
-import pydmd
+# import pydmd
 
 class DMD:
-    def __init__(self, dt, max_rank = 10):
+    """
+    Computes standard DMD on a given data matrix X. The modes
+    and the reconstructed data can be obtained by calling the 
+    corresponding methods.
+    """
+    def __init__(self, dt, max_rank = 10, **kwargs):
         self.dt = dt
         self.max_rank = max_rank
 

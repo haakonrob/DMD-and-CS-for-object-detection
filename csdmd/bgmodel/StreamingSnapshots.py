@@ -2,7 +2,17 @@ import numpy as np
 
 
 class SlidingDMD:
+    """
+    Simplified version of the algorithm presented in 
+    "Dynamic Mode Decomposition for Background Modeling" ( Kutz et al 2016)
+
+    Is essentially just normal DMD computed on a sliding window.
+
+    The background model for time Δt into the future can be obtained using
+    dmd.reconstruct(Δt)
+    """
     def __init__(self, N=60, max_rank = None, dt=1):
+        self.x = None
         self.N = N
         self.X, self.Y = None, None
         self.XX = None
@@ -10,13 +20,8 @@ class SlidingDMD:
         self.max_rank = max_rank
         self.iters = 0
 
-    def stream(self,x,y):
+    def stream(self,y):
         self.iters += 1
-        # Initialise data as columns matrices
-        # x = np.matrix(x)
-        # y = np.matrix(y)
-        # if x.shape[0] == 1: x = x.T
-        # if y.shape[0] == 1: y = y.T
 
         if self.XX is None:
             self.XX = np.zeros((y.shape[0], self.N))
@@ -66,7 +71,18 @@ class SlidingDMD:
 
 
 class StreamingSnapshots:
+    """
+    Simplified version of the algorithm presented in 
+    "Dynamic Mode Decomposition for Background Modeling" ( Kutz et al 2016)
+
+    Is essentially just normal DMD computed on a sliding window, but with the 
+    optimisastion that the product X.T*X is updated efficiently every iteration.
+
+    The background model for time Δt into the future can be obtained using
+    dmd.reconstruct(Δt)
+    """
     def __init__(self, N=60, max_rank = None, dt=1):
+        # self.x = None
         self.N = N
         self._X = None
         self.XX = None
@@ -74,7 +90,7 @@ class StreamingSnapshots:
         self.max_rank = max_rank
         self.iters = 0
 
-    def stream(self,x,y):
+    def stream(self,y):
         self.iters += 1
         # Initialise data as columns matrices
         # x = np.matrix(x)
@@ -138,10 +154,3 @@ class StreamingSnapshots:
         time_dynamics = np.exp(np.outer(omega, t))
         self.td = time_dynamics
         return self.phi[:,:r] @ (time_dynamics * b[:,None])
-
-
-
-
-class StreamingSVD:
-    def __init__():
-        pass

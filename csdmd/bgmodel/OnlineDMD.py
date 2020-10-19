@@ -61,6 +61,7 @@ class OnlineDMD:
         Creat an object for online DMD
         Usage: odmd = OnlineDMD(n,weighting)
             """
+        self.x = None
         self.n = n
         self.weighting = weighting
         self.timestep = 0
@@ -91,13 +92,18 @@ class OnlineDMD:
         self.A = np.random.randn(self.n, self.n)
         self.P = alpha*np.identity(self.n)
         
-    def stream(self, x, y):
+    def stream(self, y):
         """Update the DMD computation with a new pair of snapshots (x,y)
         Here, if the (discrete-time) dynamics are given by z(k) = f(z(k-1)), 
         then (x,y) should be measurements correponding to consecutive states 
         z(k-1) and z(k).
         Usage: odmd.update(x, y)
         """
+        x = self.x
+        if x is None:
+            self.x = y
+            return False
+            
         # compute P*x matrix vector product beforehand
         Px = self.P.dot(x)
         # compute gamma
@@ -120,4 +126,5 @@ class OnlineDMD:
         return modes, evals
 
     def reconstruct(self,t):
+        pass
         

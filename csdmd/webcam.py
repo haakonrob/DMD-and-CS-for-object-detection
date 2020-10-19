@@ -1,175 +1,64 @@
 import cv2 as cv
+import numpy as np
 from time import sleep, time
 from math import floor
+from traceback import print_tb
 
-from .SDMD2 import SDMD
-from .STDMD import STDMD
-from .StreamingSnapshots import StreamingSnapshots, SlidingDMD
+from csdmd.inputParser import cvInputParser
+from csdmd.viewer import cvViewer
+
+from csdmd.fps import FPS
+from csdmd.bgmodel.BackgroundModel import BackgroundModel
 # from .OnlineDMD import OnlineDMD
 
-import numpy as np
-import cv2 as cv
 
+def run(src=0):
+    try:
+        cap = cv.VideoCapture(src)
+        if not cap.isOpened():
+            print("Cannot open camera")
+            exit()
 
+        ip = cvInputParser()
+        model = BackgroundModel()
+        viewer = cvViewer(shape = (360,240))
+        fps = FPS()
 
-viewshape = (360, 240)
-last_time = 0
-FPS = 120
-curr_fps = FPS
-T_INTERVAL = 1/FPS
-params = dict(max_rank=10, N=10)
+        # Initialise with a black screen
+        viewer.show(None)
 
-
-algs = [
-    SlidingDMD, 
-    StreamingSnapshots
-]
-
-def fps_limit():
-    global last_time, T_INTERVAL, curr_fps
-    t = time()
-    elapsed = t - last_time
-    curr_fps = 0.8*curr_fps + 0.2/elapsed
-    if elapsed > T_INTERVAL:
-        last_time = t
-        return True, curr_fps
-    return False, curr_fps
-
-def isDigit(key):
-    return 48 <= key <= 57 
-
-def resetAlg(i):
-    print(i)
-    if i < len(algs):
-        return algs[i](**params)
-    else:
-        print("Invalid algorithm")
-        return None
-
-def run():
-    downsample = 4
-    T = 0  # Reconstruction time
-
-    cap = cv.VideoCapture(0)
-
-    if not cap.isOpened():
-        print("Cannot open camera")
-        exit()
-
-    ret, frame = cap.read()
-    frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    shape = tuple(reversed(frame.shape))
-    dshape = lambda: ( floor(shape[0]/downsample), floor(shape[1]/downsample) )
-
-    # print(frame.min(),frame.max(),frame.mean())
-    cv.imshow('frame', np.zeros(viewshape))
-    
-    i = 0
-    dmd = resetAlg(i)
-    
-    x,y = None, None
-
-
-    while True:
-        try:
-            key = cv.waitKey(1)
-            if key == ord('q'):
-                print("quit")
+        while True:
+            # Handle user inputs for changes to the model or model parameters
+            new_model, new_params, will_quit = ip.handle_inputs(model.params)
+            if will_quit:
                 break
-            elif isDigit(key):
-                i_ = int(chr(key))
-                dmd_ = resetAlg(i_)
-                if dmd_ is not None:
-                    dmd = dmd_
-                    i = i_        
-            elif key == ord('w'):
-                params["max_rank"] += 1
-                dmd = resetAlg(i)
-            elif key == ord('a'):
-                params["N"] -= 5
-                dmd = resetAlg(i)
-            elif key == ord('s'):
-                params["max_rank"] -= 1
-                dmd = resetAlg(i)
-            elif key == ord('d'):
-                params["N"] += 5
-                dmd = resetAlg(i)
-            elif key == ord('-'):
-                downsample += 1
-                dmd = resetAlg(i)
-            elif key == ord('='):
-                downsample = max(1,downsample-1)
-                dmd = resetAlg(i)
-            elif key == ord('t'):
-                T = 1/curr_fps if T == 0 else 0
-            elif key > -1: 
-                print(key)
-        except Exception as e:
-            print(e)
+            elif new_model is not None or new_params is not None:
+                model.reset(new_model=new_model, new_params=new_params)
+            
+            # Limit the FPS (also necessary for keeping track of the fps)
+            toofast = fps.update()
+            if toofast:
+                # This never happens when using the webcam, because it is IO bound 
+                continue
 
-        
-        # Capture frame-by-frame
-        ret, frame_raw = cap.read()
-        
-        # if frame is read correctly ret is True
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-        
-        # Grayscale frame to reduce compute cost 
-        frame = cv.cvtColor(frame_raw, cv.COLOR_BGR2GRAY)
-        
-        # If we're going too fast, rate limit. This helps with responsiveness to key presses
-        toofast, fps = fps_limit()
-        # if toofast:
-        #     # This almost never happens
-        #     continue
+            _, frame_raw = cap.read()
+            frame = cv.cvtColor(frame_raw, cv.COLOR_BGR2GRAY)
 
-        # Convert to grayscale and scale down
-        y = cv.resize(frame, dshape()).T.flatten()
-        y = np.interp(y, (0, 255), (0,1))
+            model.update(frame)
 
-        if x is not None and y is not None:
-            ready = dmd.stream(x,y)
-            if ready:
-                modes, _ = dmd.compute_modes()
-                if modes is not None:
-                    bg = dmd.reconstruct(t=T).real.clip(0,1).flatten()
-                    objects = (y - bg).real.clip(0,1)
+            # Info to show to overlay on the output
+            infostring = "FPS: {:.1f}, rank: {}, #snapshots: {}, Downsample: {}, Model time: {:.2f}, Algorithm: {}".format(
+                fps.fps, 
+                model.params["max_rank"], 
+                model.params["N"], 
+                model.params['downsample'], 
+                model.params['T'],
+                model.name,
+            )
+            
+            viewer.show((frame, model.background, model.objects), infostring)
 
-                    bg = bg.reshape(dshape()).T
-                    objects = objects.reshape(dshape()).T
-
-                    # bg = np.interp(bg,(0,1), (0,255))
-                    # objects = np.interp(objects,(0,1), (0,255))
-
-                    bg = cv.resize(bg, viewshape)
-                    objects = cv.resize(objects, viewshape)
-            else:
-                bg = np.zeros(viewshape).T
-                objects = np.zeros(viewshape).T
-
-            # Grab the frame and resize it for the screen
-            viewframe = np.interp(cv.resize(frame, viewshape), (0,255), (0,1))
-            # print(viewframe.shape,bg.shape,objects.shape)
-            # Concatenate the results for a side by side comparison
-            im = np.concatenate((viewframe, bg, objects), axis=1)   
-            # print(im.min(), im.max(), im.mean())
-            # Put info on the page
-            im = cv.putText(
-                im, 
-                "FPS: {:.1f}, rank: {}, #snapshots: {}, Downsample: {}, Predict: {}".format(fps, params["max_rank"], params["N"], downsample, "now" if T==0 else "future"), 
-                org=(0,20), 
-                fontFace=cv.FONT_HERSHEY_SIMPLEX,  
-                fontScale=0.5, 
-                color=(0,0,0), 
-                thickness=2)
-            cv.imshow('frame', im)
-
-        # Shift
-        x = y
-        # sleep(0.1)
-
-    # When everything done, release the capture
-    cap.release()
-    cv.destroyAllWindows()
+    finally:
+        # When everything done, release the webcam or video file and close all windows
+        cap.release()
+        cv.destroyAllWindows()
