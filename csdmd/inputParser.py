@@ -39,7 +39,7 @@ class cvInputParser:
             elif key == ord('-'):
                 params = current_params
                 params['downsample'] += 1
-            elif key == ord('='):
+            elif key == ord('+') or key == ord('='): # The '=' is more convenient on the US keyboard layout
                 params = current_params
                 params['downsample'] = max(1,params['downsample']-1)
             elif key == ord('t'):
