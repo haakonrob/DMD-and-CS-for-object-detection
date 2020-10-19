@@ -12,13 +12,14 @@ from csdmd.bgmodel.BackgroundModel import BackgroundModel
 # from .OnlineDMD import OnlineDMD
 
 
-def run(src=0, dest=None):
+def run(src=0):
     try:
         cap = cv.VideoCapture(src)
         if not cap.isOpened():
             print("Cannot open camera")
             exit()
 
+        ip = cvInputParser()
         ip = cvInputParser()
         model = BackgroundModel()
         viewer = cvViewer(shape = (360,240))
@@ -62,9 +63,6 @@ def run(src=0, dest=None):
             )
             
             viewer.show((frame, model.background, model.objects), infostring)
-        
-            # if dest is not None:
-            #     viewer.save(dest)
 
 
     finally:
