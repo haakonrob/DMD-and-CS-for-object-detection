@@ -41,7 +41,12 @@ def run(src=0):
                 # This never happens when using the webcam, because it is IO bound 
                 continue
 
-            _, frame_raw = cap.read()
+            ret, frame_raw = cap.read()
+            if not ret:
+                # Restart
+                cap = cv.VideoCapture(src)
+                continue
+
             frame = cv.cvtColor(frame_raw, cv.COLOR_BGR2GRAY)
 
             model.update(frame)
