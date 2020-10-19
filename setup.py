@@ -48,7 +48,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'pydmd', 'scikit-image', 'scikit-learn'],  # Optional
+    install_requires=['numpy', 'pydmd', 'scikit-image', 'scikit-learn', 'click'],  # Optional
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
@@ -66,7 +66,7 @@ setup(
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
         'console_scripts': [
-            'sample=sample:main',
+            'csdmd=main:main',
         ],
     },
 )

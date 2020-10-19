@@ -12,7 +12,7 @@ from csdmd.bgmodel.BackgroundModel import BackgroundModel
 # from .OnlineDMD import OnlineDMD
 
 
-def run(src=0):
+def run(src=0, dest=None):
     try:
         cap = cv.VideoCapture(src)
         if not cap.isOpened():
@@ -62,6 +62,10 @@ def run(src=0):
             )
             
             viewer.show((frame, model.background, model.objects), infostring)
+        
+            # if dest is not None:
+            #     viewer.save(dest)
+
 
     finally:
         # When everything done, release the webcam or video file and close all windows

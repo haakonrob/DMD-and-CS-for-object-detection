@@ -82,7 +82,6 @@ class BackgroundModel:
         return self._objects
 
     def update(self, frame):
-        
         self.frame_shape = frame.shape
 
         if self.modeltype == 'DMD':

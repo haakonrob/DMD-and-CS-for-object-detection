@@ -34,10 +34,10 @@ class cvViewer:
         im = np.concatenate(frames, axis=1)   
  
         # Put given string into the image
-        im = self.putText(im, infostring)
+        self.im = self.putText(im, infostring)
 
         # Draw the frame
-        cv.imshow('frame', im)
+        cv.imshow('frame', self.im)
 
     def putText(self,im,text,org=(0,20),fontFace=cv.FONT_HERSHEY_PLAIN,fontScale=1,thickness=1):
         # We draw the text twice with differenct thicknesses to get
