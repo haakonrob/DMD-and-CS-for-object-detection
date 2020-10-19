@@ -3,6 +3,10 @@ import numpy as np
 
 
 class cvViewer:
+    """
+        Module that takes in frames, resizes them appropriately, and outputs them to 
+        either a file or the screen.
+    """
     def __init__(self, shape=(360, 240)):
         self.shape = shape  # The desired size of each given frame in pixels
 
