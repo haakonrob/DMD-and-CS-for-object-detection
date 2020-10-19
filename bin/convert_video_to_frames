@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# This script unpacks any videos in the given directory into lots of frames. 
+# This is generally quite intensive, and the resulting folders will be quite large (~2GB)
+
+DIR="$1"
+FILES=`ls $DIR`
+for F in $FILES
+do
+    if [ ${F: -4} == ".MOV" ]
+    then
+        NAME=`basename $F .MOV`
+        if [ ! -d "$DIR/$NAME" ] 
+        then
+            mkdir "$DIR/$NAME"
+        fi
+        ffmpeg -i "$DIR/$F" -f image2 "$DIR/$NAME/frame%05d.png"
+
+    fi
+done
