@@ -8,7 +8,6 @@ from csdmd.inputParser import cvInputParser
 from csdmd.viewer import cvViewer
 
 from csdmd.fps import FPS
-from csdmd.utils import isDigit
 from csdmd.bgmodel.BackgroundModel import BackgroundModel
 # from .OnlineDMD import OnlineDMD
 
