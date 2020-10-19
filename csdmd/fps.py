@@ -12,7 +12,7 @@ class FPS:
         self.interval = 1/max_fps if max_fps is not None else 0
         self.alpha = alpha  # smoothing parameter
     
-    def update(self):xxxxxxx    
+    def update(self):    
         t = time()
         elapsed = t - self.last
         if elapsed > self.interval:
