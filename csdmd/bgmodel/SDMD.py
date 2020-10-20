@@ -13,6 +13,11 @@ class SDMD:
         self.ngram = ngram      # number of times to reapply Gram-Schmidt
         self.epsilon = epsilon  # tolerance for expanding the bases
 
+    def apply(self, frame, t=0):
+        self.stream(frame)
+        self.compute_modes()
+        return self.reconstruct(t)
+
     def stream(self, y):
         """Update the DMD computation with a pair of snapshots
         Add a pair of snapshots (x,y) to the data ensemble.  Here, if the

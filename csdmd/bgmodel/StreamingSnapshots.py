@@ -11,7 +11,7 @@ class SlidingDMD:
     The background model for time Δt into the future can be obtained using
     dmd.reconstruct(Δt)
     """
-    def __init__(self, N=60, max_rank = None, dt=1):
+    def __init__(self, N=10, max_rank = 4, dt=1):
         self.x = None
         self.N = N
         self.X, self.Y = None, None
@@ -19,6 +19,22 @@ class SlidingDMD:
         self.dt = dt
         self.max_rank = max_rank
         self.iters = 0
+
+    def apply(self, frame, t=0):
+        dtype = frame.dtype
+        shape = frame.shape
+        frame = np.interp(frame, (0,255),(0,1))
+        
+        y = frame.T.flatten()
+        ready = self.stream(y)
+        if ready:
+            self.compute_modes()
+            bg = self.reconstruct(t).real.clip(0,1).flatten()
+            fg = (y - bg).real.clip(0,1)
+            fg = np.interp(fg, (0,1),(0,255))
+            fg = fg.reshape((shape[1],shape[0])).T
+            return fg.astype(dtype)
+        return np.zeros_like(frame).astype(dtype)
 
     def stream(self,y):
         self.iters += 1
@@ -89,6 +105,11 @@ class StreamingSnapshots:
         self.dt = dt
         self.max_rank = max_rank
         self.iters = 0
+
+    def apply(self, frame, t=0):
+        self.stream(frame)
+        self.compute_modes()
+        return self.reconstruct(t)
 
     def stream(self,y):
         self.iters += 1

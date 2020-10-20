@@ -6,6 +6,11 @@ class Diff:
         self.x = None
         return 
 
+    def apply(self, frame, t=0):
+        self.stream(frame)
+        self.compute_modes()
+        return self.reconstruct(t)
+    
     def stream(self,y):
         if self.x is None:
             self.x = y

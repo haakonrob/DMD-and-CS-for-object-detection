@@ -91,7 +91,12 @@ class OnlineDMD:
         alpha = 1.0/epsilon
         self.A = np.random.randn(self.n, self.n)
         self.P = alpha*np.identity(self.n)
-        
+    
+    def apply(self, frame, t=0):
+        self.stream(frame)
+        self.compute_modes()
+        return self.reconstruct(t)
+
     def stream(self, y):
         """Update the DMD computation with a new pair of snapshots (x,y)
         Here, if the (discrete-time) dynamics are given by z(k) = f(z(k-1)), 

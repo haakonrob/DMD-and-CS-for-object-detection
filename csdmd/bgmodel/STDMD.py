@@ -21,6 +21,11 @@ class STDMD:
         self.ngram = ngram         # Number of times to reapply Gram-Schmidt
         self.precision = epsilon
     
+    def apply(self, frame, t=0):
+        self.stream(frame)
+        self.compute_modes()
+        return self.reconstruct(t)
+
     def stream(self, y):
         x = self.x
         if x is None:
